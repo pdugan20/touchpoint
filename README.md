@@ -1,4 +1,4 @@
-# TouchPoint
+# touchpoint
 
 [![Build, Lint & Test](https://github.com/pdugan20/touchpoint/actions/workflows/build.yml/badge.svg)](https://github.com/pdugan20/touchpoint/actions/workflows/build.yml)
 [![Swift](https://img.shields.io/badge/Swift-6.0-F05138?logo=swift&logoColor=white)](https://swift.org)

@@ -6,7 +6,7 @@
 [![macOS](https://img.shields.io/badge/macOS-26+-000000?logo=apple&logoColor=white)](https://developer.apple.com/macos/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?logo=opensourceinitiative&logoColor=white)](https://opensource.org/licenses/MIT)
 
-A minimal macOS menu bar app that replaces the system cursor with a translucent circle overlay — designed for screen recordings, presentations, and demos.
+A macOS menu bar app that replaces the system cursor with a touch-style circle overlay — like the touch cursor in Figma's prototype mode, but system-wide. Built for recording iOS Simulator interactions, device prototyping demos, and presentations.
 
 ## Install
 

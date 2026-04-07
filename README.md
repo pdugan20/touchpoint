@@ -17,5 +17,3 @@ Download the latest DMG from [Releases](https://github.com/pdugan20/touchpoint/r
 - **Cmd+Shift+T** — Toggle the overlay on/off
 - **Cmd+Shift+=/-** — Increase/decrease circle size
 - **Cmd+Shift+0** — Reset to default size
-- The system cursor is automatically hidden when active
-- Click state dims the overlay opacity

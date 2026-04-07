@@ -5,37 +5,36 @@ import Cocoa
 /// connection property that allows CGDisplayHideCursor to work even when
 /// other apps are in the foreground.
 enum CursorHider {
+  // MARK: - CGS Private API
 
-    // MARK: - CGS Private API
+  @_silgen_name("CGSSetConnectionProperty")
+  private static func CGSSetConnectionProperty(
+    _ connection: Int,
+    _ targetConnection: Int,
+    _ key: CFString,
+    _ value: CFTypeRef
+  )
 
-    @_silgen_name("CGSSetConnectionProperty")
-    private static func CGSSetConnectionProperty(
-        _ connection: Int,
-        _ targetConnection: Int,
-        _ key: CFString,
-        _ value: CFTypeRef
-    )
+  @_silgen_name("_CGSDefaultConnection")
+  private static func CGSDefaultConnection() -> Int
 
-    @_silgen_name("_CGSDefaultConnection")
-    private static func CGSDefaultConnection() -> Int
+  // MARK: - State
 
-    // MARK: - State
+  private(set) static var isHidden = false
 
-    private(set) static var isHidden = false
+  // MARK: - Public
 
-    // MARK: - Public
+  static func hide() {
+    guard !isHidden else { return }
+    let conn = CGSDefaultConnection()
+    CGSSetConnectionProperty(conn, conn, "SetsCursorInBackground" as CFString, kCFBooleanTrue)
+    CGDisplayHideCursor(CGMainDisplayID())
+    isHidden = true
+  }
 
-    static func hide() {
-        guard !isHidden else { return }
-        let conn = CGSDefaultConnection()
-        CGSSetConnectionProperty(conn, conn, "SetsCursorInBackground" as CFString, kCFBooleanTrue)
-        CGDisplayHideCursor(CGMainDisplayID())
-        isHidden = true
-    }
-
-    static func show() {
-        guard isHidden else { return }
-        CGDisplayShowCursor(CGMainDisplayID())
-        isHidden = false
-    }
+  static func show() {
+    guard isHidden else { return }
+    CGDisplayShowCursor(CGMainDisplayID())
+    isHidden = false
+  }
 }

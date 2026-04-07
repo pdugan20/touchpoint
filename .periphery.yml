@@ -1,0 +1,6 @@
+project: TouchPoint.xcodeproj
+schemes:
+  - TouchPoint
+targets:
+  - TouchPoint
+retain_public: true

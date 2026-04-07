@@ -74,6 +74,7 @@
 			buildConfigurationList = A6000003 /* Build configuration list for PBXNativeTarget "TouchPoint" */;
 			buildPhases = (
 				A5000001 /* Sources */,
+				A5000002 /* Set Version from Git Tag */,
 			);
 			buildRules = (
 			);
@@ -111,6 +112,23 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		A5000002 /* Set Version from Git Tag */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Set Version from Git Tag";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "GIT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo \"0.1.0\")\nGIT_VERSION=${GIT_VERSION#v}\nBUILD_NUMBER=$(git rev-list --count HEAD)\n\n/usr/libexec/PlistBuddy -c \"Set :CFBundleShortVersionString $GIT_VERSION\" \"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $BUILD_NUMBER\" \"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		A5000001 /* Sources */ = {

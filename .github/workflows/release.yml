@@ -1,0 +1,45 @@
+name: Release
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: macos-15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Release
+        run: |
+          xcodebuild -project TouchPoint.xcodeproj \
+            -scheme TouchPoint \
+            -configuration Release \
+            -derivedDataPath build \
+            build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Create DMG
+        run: |
+          APP_PATH="build/Build/Products/Release/TouchPoint.app"
+          DMG_PATH="TouchPoint-${GITHUB_REF_NAME}.dmg"
+
+          mkdir -p dmg-staging
+          cp -R "$APP_PATH" dmg-staging/
+          ln -s /Applications dmg-staging/Applications
+
+          hdiutil create -volname "TouchPoint" \
+            -srcfolder dmg-staging \
+            -ov -format UDZO \
+            "$DMG_PATH"
+
+          echo "DMG_PATH=$DMG_PATH" >> "$GITHUB_ENV"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.DMG_PATH }}
+          generate_release_notes: true

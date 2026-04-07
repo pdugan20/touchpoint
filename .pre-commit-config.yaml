@@ -1,0 +1,50 @@
+# Pre-Commit Hooks for TouchPoint
+# Install: pre-commit install
+# Run:     pre-commit run --all-files
+
+minimum_pre_commit_version: "3.0.0"
+
+default_stages: [pre-commit]
+
+exclude: |
+  (?x)^(
+    \.build/.*|
+    DerivedData/.*|
+    .*\.xcodeproj/.*\.pbxproj$
+  )$
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=5000"]
+      - id: trailing-whitespace
+        exclude: \.md$
+      - id: end-of-file-fixer
+        exclude: \.md$
+      - id: check-yaml
+      - id: check-json
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+
+  - repo: local
+    hooks:
+      - id: swiftformat
+        name: SwiftFormat (Airbnb Style)
+        entry: swiftformat --lint
+        language: system
+        files: \.swift$
+        pass_filenames: true
+
+      - id: swiftlint
+        name: SwiftLint
+        entry: swiftlint lint --strict --quiet
+        language: system
+        files: \.swift$
+        pass_filenames: false

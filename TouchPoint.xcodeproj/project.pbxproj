@@ -8,16 +8,16 @@
 
 /* Begin PBXBuildFile section */
 		A1000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001 /* AppDelegate.swift */; };
-		A1000003 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000005 /* main.swift */; };
 		A1000005 /* OverlayWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000009 /* OverlayWindow.swift */; };
+		A1000007 /* CursorHider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000011 /* CursorHider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A2000001 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A2000003 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A2000004 /* TouchPoint.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TouchPoint.entitlements; sourceTree = "<group>"; };
-		A2000005 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		A2000009 /* OverlayWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindow.swift; sourceTree = "<group>"; };
+		A2000011 /* CursorHider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorHider.swift; sourceTree = "<group>"; };
 		A2000010 /* TouchPoint.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TouchPoint.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -42,8 +42,8 @@
 		A3000003 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				A2000005 /* main.swift */,
 				A2000001 /* AppDelegate.swift */,
+				A2000011 /* CursorHider.swift */,
 				A2000009 /* OverlayWindow.swift */,
 			);
 			path = Sources;
@@ -117,8 +117,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1000003 /* main.swift in Sources */,
 				A1000001 /* AppDelegate.swift in Sources */,
+				A1000007 /* CursorHider.swift in Sources */,
 				A1000005 /* OverlayWindow.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

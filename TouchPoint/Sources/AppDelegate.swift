@@ -1,6 +1,7 @@
 import Cocoa
 import Carbon
 
+@main
 class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var statusItem: NSStatusItem!
@@ -11,6 +12,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var trackingTimer: DispatchSourceTimer?
     private var clickDownMonitor: Any?
     private var clickUpMonitor: Any?
+
+    // MARK: - App Lifecycle
+
+    static func main() {
+        let app = NSApplication.shared
+        let delegate = AppDelegate()
+        app.delegate = delegate
+        app.run()
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupStatusItem()
@@ -39,40 +49,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         isActive ? deactivate() : activate()
     }
 
-    // CGS private API — same technique Cursorcerer uses internally
-    @_silgen_name("CGSSetConnectionProperty")
-    static func CGSSetConnectionProperty(_ connection: Int, _ targetConnection: Int,
-                                          _ key: CFString, _ value: CFTypeRef)
-
-    @_silgen_name("_CGSDefaultConnection")
-    static func _CGSDefaultConnection() -> Int
-
-    private var cursorHidden = false
-
-    private func hideCursor() {
-        if !cursorHidden {
-            let conn = Self._CGSDefaultConnection()
-            Self.CGSSetConnectionProperty(conn, conn,
-                                           "SetsCursorInBackground" as CFString,
-                                           kCFBooleanTrue)
-            CGDisplayHideCursor(CGMainDisplayID())
-            cursorHidden = true
-            NSLog("[TouchPoint] Cursor hidden")
-        }
-    }
-
-    private func showCursor() {
-        if cursorHidden {
-            CGDisplayShowCursor(CGMainDisplayID())
-            cursorHidden = false
-            NSLog("[TouchPoint] Cursor shown")
-        }
-    }
-
     private func activate() {
         isActive = true
 
-        hideCursor()
+        CursorHider.hide()
 
         overlayWindow = OverlayWindow()
         overlayWindow?.moveToMouse()
@@ -101,7 +81,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func deactivate() {
         isActive = false
 
-        showCursor()
+        CursorHider.show()
 
         trackingTimer?.cancel()
         trackingTimer = nil
@@ -148,7 +128,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func quit() {
         if isActive { deactivate() }
-        showCursor()  // ensure cursor is restored
+        CursorHider.show()
         NSApplication.shared.terminate(nil)
     }
 }

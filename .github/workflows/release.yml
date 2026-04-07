@@ -14,15 +14,53 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Build Release
+      - name: Import signing certificate
+        env:
+          CERT_BASE64: ${{ secrets.DEVELOPER_ID_CERT_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.DEVELOPER_ID_CERT_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/signing.keychain-db
+          KEYCHAIN_PASSWORD=$(uuidgen)
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+          echo -n "$CERT_BASE64" | base64 --decode -o $RUNNER_TEMP/cert.p12
+          security import $RUNNER_TEMP/cert.p12 -P "$CERT_PASSWORD" \
+            -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: \
+            -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
+      - name: Build
         run: |
           xcodebuild -project TouchPoint.xcodeproj \
             -scheme TouchPoint \
             -configuration Release \
             -derivedDataPath build \
-            build \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO
+            build
+
+      - name: Notarize
+        env:
+          API_KEY: ${{ secrets.NOTARY_API_KEY }}
+          API_KEY_ID: ${{ secrets.NOTARY_API_KEY_ID }}
+          API_ISSUER: ${{ secrets.NOTARY_API_ISSUER }}
+        run: |
+          APP_PATH="build/Build/Products/Release/TouchPoint.app"
+
+          mkdir -p ~/private_keys
+          echo "$API_KEY" > ~/private_keys/AuthKey_${API_KEY_ID}.p8
+
+          ditto -c -k --keepParent "$APP_PATH" /tmp/TouchPoint.zip
+
+          xcrun notarytool submit /tmp/TouchPoint.zip \
+            --key ~/private_keys/AuthKey_${API_KEY_ID}.p8 \
+            --key-id "$API_KEY_ID" \
+            --issuer "$API_ISSUER" \
+            --wait
+
+          xcrun stapler staple "$APP_PATH"
 
       - name: Create DMG
         run: |
@@ -45,3 +83,7 @@ jobs:
         with:
           files: ${{ env.DMG_PATH }}
           generate_release_notes: true
+
+      - name: Cleanup
+        if: always()
+        run: security delete-keychain $RUNNER_TEMP/signing.keychain-db 2>/dev/null || true

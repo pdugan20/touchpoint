@@ -25,7 +25,6 @@ enum CursorHider {
   // MARK: - Public
 
   static func hide() {
-    guard !isHidden else { return }
     let conn = CGSDefaultConnection()
     CGSSetConnectionProperty(conn, conn, "SetsCursorInBackground" as CFString, kCFBooleanTrue)
     CGDisplayHideCursor(CGMainDisplayID())

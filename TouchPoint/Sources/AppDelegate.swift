@@ -12,6 +12,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   private var clickDownMonitor: Any?
   private var clickUpMonitor: Any?
 
+  private static let sizeKey = "circleSize"
+  private static let defaultSize: CGFloat = 40
+  private static let sizeStep: CGFloat = 5
+  private static let minSize: CGFloat = 15
+  private static let maxSize: CGFloat = 80
+
+  private var circleSize: CGFloat {
+    get {
+      let saved = UserDefaults.standard.double(forKey: Self.sizeKey)
+      return saved > 0 ? saved : Self.defaultSize
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: Self.sizeKey)
+    }
+  }
+
   // MARK: - App Lifecycle
 
   static func main() {
@@ -30,16 +46,79 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
   private func setupStatusItem() {
     statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-    if let button = statusItem?.button {
-      button.image = NSImage(systemSymbolName: "circle.circle", accessibilityDescription: "TouchPoint")
-      button.image?.isTemplate = true
-    }
+    updateStatusIcon()
+    statusItem?.menu = buildMenu()
+  }
+
+  private func buildMenu() -> NSMenu {
     let menu = NSMenu()
+
     menu.addItem(NSMenuItem(title: "Toggle TouchPoint", action: #selector(toggleOverlay), keyEquivalent: "t"))
-    menu.items.first?.keyEquivalentModifierMask = [.command, .shift]
+    menu.items.last?.keyEquivalentModifierMask = [.command, .shift]
+
+    menu.addItem(NSMenuItem.separator())
+
+    let sizeMenu = NSMenu()
+
+    let increaseItem = NSMenuItem(title: "Increase", action: #selector(increaseSize), keyEquivalent: "=")
+    increaseItem.keyEquivalentModifierMask = [.command, .shift]
+    increaseItem.isEnabled = circleSize < Self.maxSize
+    sizeMenu.addItem(increaseItem)
+
+    let decreaseItem = NSMenuItem(title: "Decrease", action: #selector(decreaseSize), keyEquivalent: "-")
+    decreaseItem.keyEquivalentModifierMask = [.command, .shift]
+    decreaseItem.isEnabled = circleSize > Self.minSize
+    sizeMenu.addItem(decreaseItem)
+
+    sizeMenu.addItem(NSMenuItem.separator())
+
+    let resetItem = NSMenuItem(title: "Reset to Default", action: #selector(resetSize), keyEquivalent: "0")
+    resetItem.keyEquivalentModifierMask = [.command, .shift]
+    resetItem.isEnabled = circleSize != Self.defaultSize
+    sizeMenu.addItem(resetItem)
+
+    sizeMenu.addItem(NSMenuItem.separator())
+
+    let currentItem = NSMenuItem(title: "\(Int(circleSize))pt", action: nil, keyEquivalent: "")
+    currentItem.isEnabled = false
+    sizeMenu.addItem(currentItem)
+
+    let sizeItem = NSMenuItem(title: "Size", action: nil, keyEquivalent: "")
+    sizeItem.submenu = sizeMenu
+    menu.addItem(sizeItem)
+
     menu.addItem(NSMenuItem.separator())
     menu.addItem(NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: "q"))
-    statusItem?.menu = menu
+
+    return menu
+  }
+
+  @objc
+  private func increaseSize() {
+    applySize(min(circleSize + Self.sizeStep, Self.maxSize))
+  }
+
+  @objc
+  private func decreaseSize() {
+    applySize(max(circleSize - Self.sizeStep, Self.minSize))
+  }
+
+  @objc
+  private func resetSize() {
+    applySize(Self.defaultSize)
+  }
+
+  private func applySize(_ newSize: CGFloat) {
+    circleSize = newSize
+    statusItem?.menu = buildMenu()
+
+    if isActive {
+      overlayWindow?.orderOut(nil)
+      overlayWindow = OverlayWindow(circleSize: circleSize)
+      overlayWindow?.moveToMouse()
+      overlayWindow?.orderFrontRegardless()
+      CursorHider.hide()
+    }
   }
 
   // MARK: - Toggle
@@ -58,7 +137,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     CursorHider.hide()
 
-    overlayWindow = OverlayWindow()
+    overlayWindow = OverlayWindow(circleSize: circleSize)
     overlayWindow?.moveToMouse()
     overlayWindow?.orderFrontRegardless()
 
@@ -103,7 +182,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
   private func updateStatusIcon() {
     let name = isActive ? "circle.circle.fill" : "circle.circle"
-    statusItem?.button?.image = NSImage(systemSymbolName: name, accessibilityDescription: "TouchPoint")
+    let config = NSImage.SymbolConfiguration(pointSize: 15, weight: .regular)
+    let image = NSImage(systemSymbolName: name, accessibilityDescription: "TouchPoint")
+    statusItem?.button?.image = image?.withSymbolConfiguration(config)
     statusItem?.button?.image?.isTemplate = true
   }
 

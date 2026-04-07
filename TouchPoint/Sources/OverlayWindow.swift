@@ -6,11 +6,13 @@ class OverlayWindow: NSPanel {
   static let windowSize: CGFloat = 70
 
   private let circleLayer = CALayer()
+  private var currentCircleSize: CGFloat
 
-  init() {
-    let s = Self.windowSize
+  init(circleSize: CGFloat = OverlayWindow.circleSize) {
+    currentCircleSize = circleSize
+    let ws = circleSize + 30
     super.init(
-      contentRect: NSRect(x: 0, y: 0, width: s, height: s),
+      contentRect: NSRect(x: 0, y: 0, width: ws, height: ws),
       styleMask: [.borderless, .nonactivatingPanel],
       backing: .buffered,
       defer: false
@@ -32,12 +34,11 @@ class OverlayWindow: NSPanel {
     root.wantsLayer = true
     root.layer?.masksToBounds = false
 
-    let s = Self.windowSize
-    let cs = Self.circleSize
-    let offset = (s - cs) / 2
+    let ws = currentCircleSize + 30
+    let offset = (ws - currentCircleSize) / 2
 
-    circleLayer.frame = NSRect(x: offset, y: offset, width: cs, height: cs)
-    circleLayer.cornerRadius = cs / 2
+    circleLayer.frame = NSRect(x: offset, y: offset, width: currentCircleSize, height: currentCircleSize)
+    circleLayer.cornerRadius = currentCircleSize / 2
     circleLayer.backgroundColor = NSColor(red: 0.953, green: 0.953, blue: 0.953, alpha: 0.8).cgColor
     circleLayer.borderWidth = 1.5
     circleLayer.borderColor = NSColor(red: 0.976, green: 0.976, blue: 0.976, alpha: 1.0).cgColor
@@ -53,8 +54,8 @@ class OverlayWindow: NSPanel {
 
   func moveToMouse() {
     let mouse = NSEvent.mouseLocation
-    let s = Self.windowSize
-    setFrameOrigin(NSPoint(x: mouse.x - s / 2, y: mouse.y - s / 2))
+    let ws = currentCircleSize + 30
+    setFrameOrigin(NSPoint(x: mouse.x - ws / 2, y: mouse.y - ws / 2))
   }
 
   func setPressed(_ pressed: Bool) {

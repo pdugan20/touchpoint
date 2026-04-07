@@ -146,6 +146,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     timer.schedule(deadline: .now(), repeating: .milliseconds(8))
     timer.setEventHandler { [weak self] in
       self?.overlayWindow?.moveToMouse()
+      CursorHider.hide()
     }
     timer.resume()
     trackingTimer = timer

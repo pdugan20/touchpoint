@@ -21,6 +21,7 @@ enum CursorHider {
   // MARK: - State
 
   private(set) static var isHidden = false
+  private static var hideCount = 0
 
   // MARK: - Public
 
@@ -28,12 +29,16 @@ enum CursorHider {
     let conn = CGSDefaultConnection()
     CGSSetConnectionProperty(conn, conn, "SetsCursorInBackground" as CFString, kCFBooleanTrue)
     CGDisplayHideCursor(CGMainDisplayID())
+    hideCount += 1
     isHidden = true
   }
 
   static func show() {
     guard isHidden else { return }
-    CGDisplayShowCursor(CGMainDisplayID())
+    for _ in 0 ..< hideCount {
+      CGDisplayShowCursor(CGMainDisplayID())
+    }
+    hideCount = 0
     isHidden = false
   }
 }

@@ -10,7 +10,19 @@
 		A1000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001 /* AppDelegate.swift */; };
 		A1000005 /* OverlayWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000009 /* OverlayWindow.swift */; };
 		A1000007 /* CursorHider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000011 /* CursorHider.swift */; };
+		B1000001 /* CursorHiderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001 /* CursorHiderTests.swift */; };
+		B1000002 /* OverlayWindowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000002 /* OverlayWindowTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B7000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A4000010 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A4000001;
+			remoteInfo = TouchPoint;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		A2000001 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -19,6 +31,9 @@
 		A2000009 /* OverlayWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindow.swift; sourceTree = "<group>"; };
 		A2000011 /* CursorHider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorHider.swift; sourceTree = "<group>"; };
 		A2000010 /* TouchPoint.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TouchPoint.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B2000001 /* CursorHiderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorHiderTests.swift; sourceTree = "<group>"; };
+		B2000002 /* OverlayWindowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowTests.swift; sourceTree = "<group>"; };
+		B2000010 /* TouchPointTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TouchPointTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -26,6 +41,7 @@
 			isa = PBXGroup;
 			children = (
 				A3000002 /* TouchPoint */,
+				B3000001 /* TouchPointTests */,
 				A3000004 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -53,6 +69,7 @@
 			isa = PBXGroup;
 			children = (
 				A2000010 /* TouchPoint.app */,
+				B2000010 /* TouchPointTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -64,6 +81,15 @@
 				A2000004 /* TouchPoint.entitlements */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		B3000001 /* TouchPointTests */ = {
+			isa = PBXGroup;
+			children = (
+				B2000001 /* CursorHiderTests.swift */,
+				B2000002 /* OverlayWindowTests.swift */,
+			);
+			path = TouchPointTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -84,6 +110,22 @@
 			productName = TouchPoint;
 			productReference = A2000010 /* TouchPoint.app */;
 			productType = "com.apple.product-type.application";
+		};
+		B4000001 /* TouchPointTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B6000003 /* Build configuration list for PBXNativeTarget "TouchPointTests" */;
+			buildPhases = (
+				B5000001 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B7000002 /* PBXTargetDependency */,
+			);
+			name = TouchPointTests;
+			productName = TouchPointTests;
+			productReference = B2000010 /* TouchPointTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -109,6 +151,7 @@
 			projectRoot = "";
 			targets = (
 				A4000001 /* TouchPoint */,
+				B4000001 /* TouchPointTests */,
 			);
 		};
 /* End PBXProject section */
@@ -141,7 +184,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B5000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B1000001 /* CursorHiderTests.swift in Sources */,
+				B1000002 /* OverlayWindowTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B7000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A4000001 /* TouchPoint */;
+			targetProxy = B7000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A6000010 /* Debug */ = {
@@ -231,6 +291,36 @@
 			};
 			name = Release;
 		};
+		B6000020 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.patrickdugan.touchpoint.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TouchPoint.app/Contents/MacOS/TouchPoint";
+			};
+			name = Debug;
+		};
+		B6000021 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.patrickdugan.touchpoint.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TouchPoint.app/Contents/MacOS/TouchPoint";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -248,6 +338,15 @@
 			buildConfigurations = (
 				A6000020 /* Debug */,
 				A6000021 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B6000003 /* Build configuration list for PBXNativeTarget "TouchPointTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B6000020 /* Debug */,
+				B6000021 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

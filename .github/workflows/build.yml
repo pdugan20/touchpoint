@@ -1,9 +1,9 @@
-name: Build & Lint
+name: Build, Lint & Test
 on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v6
 
@@ -17,7 +17,15 @@ jobs:
         run: |
           xcodebuild -project TouchPoint.xcodeproj \
             -scheme TouchPoint \
-            -configuration Release \
+            -configuration Debug \
             build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Test
+        run: |
+          xcodebuild test -project TouchPoint.xcodeproj \
+            -scheme TouchPoint \
+            -destination 'platform=macOS' \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO

@@ -30,7 +30,3 @@ A minimal macOS menu bar app that replaces the system cursor with a soft, transl
 ## How it works
 
 TouchPoint creates a borderless, click-through `NSPanel` at the screen-saver window level that tracks the mouse position via a high-frequency timer. The cursor is hidden using `CGDisplayHideCursor` with the `SetsCursorInBackground` CGS property to ensure it stays hidden even when other apps are in the foreground.
-
-## License
-
-[MIT](LICENSE)

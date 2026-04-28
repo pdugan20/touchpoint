@@ -79,7 +79,7 @@ jobs:
           echo "DMG_PATH=$DMG_PATH" >> "$GITHUB_ENV"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2.6.1
+        uses: softprops/action-gh-release@v3.0.0
         with:
           files: ${{ env.DMG_PATH }}
           generate_release_notes: true

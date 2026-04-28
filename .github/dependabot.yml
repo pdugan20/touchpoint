@@ -4,3 +4,20 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    assignees:
+      - "pdugan20"
+    reviewers:
+      - "pdugan20"
+    groups:
+      github-actions:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]

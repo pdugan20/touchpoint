@@ -1,6 +1,6 @@
 # touchpoint
 
-[![Build, Lint & Test](https://github.com/pdugan20/touchpoint/actions/workflows/build.yml/badge.svg)](https://github.com/pdugan20/touchpoint/actions/workflows/build.yml)
+[![CI](https://github.com/pdugan20/touchpoint/actions/workflows/ci.yml/badge.svg)](https://github.com/pdugan20/touchpoint/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/pdugan20/touchpoint?logo=github&logoColor=white)](https://github.com/pdugan20/touchpoint/releases/latest)
 [![Swift](https://img.shields.io/badge/Swift-6.0-F05138?logo=swift&logoColor=white)](https://swift.org)
 [![macOS](https://img.shields.io/badge/macOS-26+-000000?logo=apple&logoColor=white)](https://developer.apple.com/macos/)

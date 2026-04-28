@@ -1,8 +1,14 @@
-name: Build, Lint & Test
-on: [push, pull_request]
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
 
 jobs:
   build:
+    name: Build, Lint & Test
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v6
@@ -29,3 +35,6 @@ jobs:
             -destination 'platform=macOS' \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO
+
+      - name: Lint Claude Code config
+        run: npx claude-code-lint@latest

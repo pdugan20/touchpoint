@@ -11,7 +11,7 @@ jobs:
     name: Build, Lint & Test
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install SwiftLint
         run: brew install swiftlint

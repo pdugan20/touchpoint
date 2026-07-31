@@ -31,9 +31,14 @@ xcodebuild test -project TouchPoint.xcodeproj -scheme TouchPoint -destination 'p
 
 ## Architecture
 
-- `AppDelegate.swift` — App lifecycle, menu bar, global hotkey (Cmd+Shift+T), size controls, cursor hiding
+- `AppDelegate.swift` — App lifecycle, menu bar, global hotkeys (Cmd+Shift+T toggle, Cmd+Shift+R record), size controls, cursor hiding
 - `OverlayWindow.swift` — NSPanel overlay that follows the mouse with click animations
 - `CursorHider.swift` — CGS private API wrapper for hiding/showing the system cursor
+- `SimulatorRecorder.swift` — ScreenCaptureKit recording of the booted iOS Simulator + overlay panel at native device resolution; crop follows the window mid-recording
+- `SimulatorCapture.swift` — setup helpers: native geometry via `simctl io enumerate`, shareable-content lookup, window→screen-rect math
+- `tools/simrec.swift` — standalone CLI variant of the recorder (not part of the app target; compile with `swiftc`)
+
+Recording requires Screen Recording TCC for the app (or, for the CLI, whatever terminal hosts it). The capture filter binds to specific windows at start; `refreshContentFilter()` re-resolves it when the overlay panel is recreated (size changes give it a new window ID).
 
 ## Code Style
 

@@ -7,6 +7,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   private var overlayWindow: OverlayWindow?
   private var isActive = false
   private var hotKeyRef: EventHotKeyRef?
+  private var recordHotKeyRef: EventHotKeyRef?
+  private let recorder = SimulatorRecorder()
 
   private var trackingTimer: DispatchSourceTimer?
   private var clickDownMonitor: Any?
@@ -54,6 +56,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let menu = NSMenu()
 
     menu.addItem(NSMenuItem(title: "Toggle TouchPoint", action: #selector(toggleOverlay), keyEquivalent: "t"))
+    menu.items.last?.keyEquivalentModifierMask = [.command, .shift]
+
+    let recordTitle = recorder.isRecording ? "Stop Recording" : "Record Simulator"
+    menu.addItem(NSMenuItem(title: recordTitle, action: #selector(toggleRecording), keyEquivalent: "r"))
     menu.items.last?.keyEquivalentModifierMask = [.command, .shift]
 
     menu.addItem(NSMenuItem.separator())
@@ -118,7 +124,46 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       overlayWindow?.moveToMouse()
       overlayWindow?.orderFrontRegardless()
       CursorHider.hide()
+      recorder.refreshContentFilter()
     }
+  }
+
+  // MARK: - Simulator Recording
+
+  @objc
+  func toggleRecording() {
+    if recorder.isRecording {
+      recorder.stop { [weak self] result in
+        guard let self else { return }
+        statusItem?.menu = buildMenu()
+        updateStatusIcon()
+        switch result {
+        case .success(let url):
+          NSWorkspace.shared.activateFileViewerSelecting([url])
+        case .failure(let error):
+          presentRecordingError(error)
+        }
+      }
+      return
+    }
+
+    // The capture filter binds to the overlay panel, so it must exist first.
+    if !isActive { activate() }
+
+    recorder.start { [weak self] error in
+      guard let self else { return }
+      statusItem?.menu = buildMenu()
+      updateStatusIcon()
+      if let error { presentRecordingError(error) }
+    }
+  }
+
+  private func presentRecordingError(_ error: Error) {
+    let alert = NSAlert()
+    alert.messageText = "Simulator Recording Failed"
+    alert.informativeText = error.localizedDescription
+    alert.alertStyle = .warning
+    alert.runModal()
   }
 
   // MARK: - Toggle
@@ -159,6 +204,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       self?.overlayWindow?.setPressed(false)
     }
 
+    if recorder.isRecording { recorder.refreshContentFilter() }
+
     updateStatusIcon()
   }
 
@@ -182,34 +229,54 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   private func updateStatusIcon() {
-    let name = isActive ? "circle.circle.fill" : "circle.circle"
+    let name = recorder.isRecording
+      ? "record.circle.fill"
+      : isActive ? "circle.circle.fill" : "circle.circle"
     let config = NSImage.SymbolConfiguration(pointSize: 15, weight: .regular)
     let image = NSImage(systemSymbolName: name, accessibilityDescription: "TouchPoint")
     statusItem?.button?.image = image?.withSymbolConfiguration(config)
     statusItem?.button?.image?.isTemplate = true
   }
 
-  // MARK: - Global Hotkey (Cmd+Shift+T)
+  // MARK: - Global Hotkeys (Cmd+Shift+T, Cmd+Shift+R)
 
   private func registerHotKey() {
-    var hotKeyID = EventHotKeyID()
-    hotKeyID.signature = OSType(0x5450_4B59)
-    hotKeyID.id = 1
-
     var eventType = EventTypeSpec()
     eventType.eventClass = OSType(kEventClassKeyboard)
     eventType.eventKind = OSType(kEventHotKeyPressed)
 
-    InstallEventHandler(GetApplicationEventTarget(), { _, _, userData -> OSStatus in
+    InstallEventHandler(GetApplicationEventTarget(), { _, event, userData -> OSStatus in
       guard let userData = userData else { return OSStatus(eventNotHandledErr) }
+      var hotKeyID = EventHotKeyID()
+      GetEventParameter(
+        event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID),
+        nil, MemoryLayout<EventHotKeyID>.size, nil, &hotKeyID
+      )
       let appDelegate = Unmanaged<AppDelegate>.fromOpaque(userData).takeUnretainedValue()
-      DispatchQueue.main.async { appDelegate.toggleOverlay() }
+      DispatchQueue.main.async {
+        if hotKeyID.id == 2 {
+          appDelegate.toggleRecording()
+        } else {
+          appDelegate.toggleOverlay()
+        }
+      }
       return noErr
     }, 1, &eventType, Unmanaged.passUnretained(self).toOpaque(), nil)
 
+    var toggleID = EventHotKeyID()
+    toggleID.signature = OSType(0x5450_4B59)
+    toggleID.id = 1
     RegisterEventHotKey(
       UInt32(kVK_ANSI_T), UInt32(cmdKey | shiftKey),
-      hotKeyID, GetApplicationEventTarget(), 0, &hotKeyRef
+      toggleID, GetApplicationEventTarget(), 0, &hotKeyRef
+    )
+
+    var recordID = EventHotKeyID()
+    recordID.signature = OSType(0x5450_4B59)
+    recordID.id = 2
+    RegisterEventHotKey(
+      UInt32(kVK_ANSI_R), UInt32(cmdKey | shiftKey),
+      recordID, GetApplicationEventTarget(), 0, &recordHotKeyRef
     )
   }
 
@@ -217,6 +284,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
   @objc
   private func quit() {
+    if recorder.isRecording {
+      recorder.stop { _ in }
+    }
     if isActive { deactivate() }
     CursorHider.show()
     NSApplication.shared.terminate(nil)

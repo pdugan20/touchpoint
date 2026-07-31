@@ -10,8 +10,11 @@
 		A1000001 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000001 /* AppDelegate.swift */; };
 		A1000005 /* OverlayWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000009 /* OverlayWindow.swift */; };
 		A1000007 /* CursorHider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000011 /* CursorHider.swift */; };
+		A1000009 /* SimulatorRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000013 /* SimulatorRecorder.swift */; };
+		A100000B /* SimulatorCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000015 /* SimulatorCapture.swift */; };
 		B1000001 /* CursorHiderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001 /* CursorHiderTests.swift */; };
 		B1000002 /* OverlayWindowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000002 /* OverlayWindowTests.swift */; };
+		B1000003 /* SimulatorCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000003 /* SimulatorCaptureTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,10 +32,13 @@
 		A2000003 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A2000004 /* TouchPoint.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TouchPoint.entitlements; sourceTree = "<group>"; };
 		A2000009 /* OverlayWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindow.swift; sourceTree = "<group>"; };
+		A2000013 /* SimulatorRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorRecorder.swift; sourceTree = "<group>"; };
+		A2000015 /* SimulatorCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorCapture.swift; sourceTree = "<group>"; };
 		A2000011 /* CursorHider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorHider.swift; sourceTree = "<group>"; };
 		A2000010 /* TouchPoint.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TouchPoint.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2000001 /* CursorHiderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorHiderTests.swift; sourceTree = "<group>"; };
 		B2000002 /* OverlayWindowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindowTests.swift; sourceTree = "<group>"; };
+		B2000003 /* SimulatorCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorCaptureTests.swift; sourceTree = "<group>"; };
 		B2000010 /* TouchPointTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TouchPointTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -61,6 +67,8 @@
 				A2000001 /* AppDelegate.swift */,
 				A2000011 /* CursorHider.swift */,
 				A2000009 /* OverlayWindow.swift */,
+				A2000013 /* SimulatorRecorder.swift */,
+				A2000015 /* SimulatorCapture.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -88,6 +96,7 @@
 			children = (
 				B2000001 /* CursorHiderTests.swift */,
 				B2000002 /* OverlayWindowTests.swift */,
+				B2000003 /* SimulatorCaptureTests.swift */,
 			);
 			path = TouchPointTests;
 			sourceTree = "<group>";
@@ -181,6 +190,8 @@
 				A1000001 /* AppDelegate.swift in Sources */,
 				A1000007 /* CursorHider.swift in Sources */,
 				A1000005 /* OverlayWindow.swift in Sources */,
+				A1000009 /* SimulatorRecorder.swift in Sources */,
+				A100000B /* SimulatorCapture.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -190,6 +201,7 @@
 			files = (
 				B1000001 /* CursorHiderTests.swift in Sources */,
 				B1000002 /* OverlayWindowTests.swift in Sources */,
+				B1000003 /* SimulatorCaptureTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

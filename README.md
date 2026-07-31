@@ -23,8 +23,10 @@ Download the latest DMG from [Releases](https://github.com/pdugan20/touchpoint/r
 
 Cmd+Shift+R records the booted iOS Simulator at **native device resolution**
 (e.g. 1206×2622 on iPhone 17 Pro) at up to 60fps, with the live TouchPoint
-cursor — press animations included — captured exactly as you see it. The
-finished HEVC `.mov` lands on your Desktop and is revealed in Finder.
+cursor — press animations included — captured exactly as you see it, plus an
+**AAC audio track of everything playing on the Mac** (Simulator sound
+included — no loopback driver needed). The finished HEVC `.mov` lands on
+your Desktop and is revealed in Finder.
 
 Requirements:
 

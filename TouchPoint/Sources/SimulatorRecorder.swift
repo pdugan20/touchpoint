@@ -11,8 +11,10 @@ final class SimulatorRecorder: NSObject {
   private(set) var isRecording = false
 
   private var stream: SCStream?
+  private var audioStream: SCStream?
   private var writer: AVAssetWriter?
   private var writerInput: AVAssetWriterInput?
+  private var audioInput: AVAssetWriterInput?
   private var sessionStarted = false
   private var stopping = false
   private var outputURL: URL?
@@ -101,16 +103,10 @@ final class SimulatorRecorder: NSObject {
     try stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: queue)
     self.stream = stream
 
-    var startError: Error?
-    let semaphore = DispatchSemaphore(value: 0)
-    stream.startCapture { error in
-      startError = error
-      semaphore.signal()
-    }
-    semaphore.wait()
-    if let startError {
-      throw RecorderError.setupFailed(startError.localizedDescription)
-    }
+    try attachAudioStream(display: display)
+
+    try startVideoCapture(stream)
+    startAudioCapture()
 
     isRecording = true
     stopping = false
@@ -130,6 +126,10 @@ final class SimulatorRecorder: NSObject {
       stream?.stopCapture { _ in semaphore.signal() }
       semaphore.wait()
       stream = nil
+      let audioSemaphore = DispatchSemaphore(value: 0)
+      audioStream?.stopCapture { _ in audioSemaphore.signal() }
+      audioSemaphore.wait()
+      audioStream = nil
 
       guard let writer, let writerInput, let outputURL, sessionStarted else {
         cleanUp()
@@ -140,6 +140,7 @@ final class SimulatorRecorder: NSObject {
       }
 
       writerInput.markAsFinished()
+      audioInput?.markAsFinished()
       let finishSemaphore = DispatchSemaphore(value: 0)
       writer.finishWriting { finishSemaphore.signal() }
       finishSemaphore.wait()
@@ -157,7 +158,9 @@ final class SimulatorRecorder: NSObject {
     sessionStarted = false
     writer = nil
     writerInput = nil
+    audioInput = nil
     stream = nil
+    audioStream = nil
     config = nil
   }
 
@@ -182,8 +185,52 @@ final class SimulatorRecorder: NSObject {
       stream.updateConfiguration(config) { _ in }
     }
   }
+}
 
-  // MARK: - Window following
+// MARK: - Audio & window following
+
+extension SimulatorRecorder {
+  /// Simulator audio is not attributed to the Simulator's windows, so a
+  /// window-filtered stream records silence. Capture audio on a second,
+  /// display-wide stream (no video output attached) instead.
+  private func attachAudioStream(display: SCDisplay) throws {
+    let audioConfig = SCStreamConfiguration()
+    audioConfig.capturesAudio = true
+    audioConfig.excludesCurrentProcessAudio = true
+    audioConfig.sampleRate = 48000
+    audioConfig.channelCount = 2
+    audioConfig.width = 2
+    audioConfig.height = 2
+    audioConfig.minimumFrameInterval = CMTime(value: 1, timescale: 1)
+    let audioFilter = SCContentFilter(display: display, excludingWindows: [])
+    let audioStream = SCStream(filter: audioFilter, configuration: audioConfig, delegate: self)
+    try audioStream.addStreamOutput(self, type: .audio, sampleHandlerQueue: queue)
+    self.audioStream = audioStream
+  }
+
+  private func startVideoCapture(_ stream: SCStream) throws {
+    var startError: Error?
+    let semaphore = DispatchSemaphore(value: 0)
+    stream.startCapture { error in
+      startError = error
+      semaphore.signal()
+    }
+    semaphore.wait()
+    if let startError {
+      throw RecorderError.setupFailed(startError.localizedDescription)
+    }
+  }
+
+  private func startAudioCapture() {
+    let semaphore = DispatchSemaphore(value: 0)
+    audioStream?.startCapture { error in
+      if let error {
+        NSLog("SimulatorRecorder audio capture unavailable: \(error.localizedDescription)")
+      }
+      semaphore.signal()
+    }
+    semaphore.wait()
+  }
 
   /// The crop rect is fixed at capture start, so re-derive it whenever the
   /// Simulator window moves or resizes mid-recording.
@@ -254,6 +301,20 @@ final class SimulatorRecorder: NSObject {
       throw RecorderError.setupFailed("The writer rejected the video settings.")
     }
     writer.add(input)
+
+    let audioSettings: [String: Any] = [
+      AVFormatIDKey: kAudioFormatMPEG4AAC,
+      AVSampleRateKey: 48000,
+      AVNumberOfChannelsKey: 2,
+      AVEncoderBitRateKey: 192_000,
+    ]
+    let audio = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
+    audio.expectsMediaDataInRealTime = true
+    guard writer.canAdd(audio) else {
+      throw RecorderError.setupFailed("The writer rejected the audio settings.")
+    }
+    writer.add(audio)
+    audioInput = audio
     guard writer.startWriting() else {
       throw RecorderError.setupFailed(writer.error?.localizedDescription ?? "Could not start writing.")
     }
@@ -268,7 +329,16 @@ final class SimulatorRecorder: NSObject {
 
 extension SimulatorRecorder: SCStreamOutput {
   func stream(_: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
-    guard type == .screen, sampleBuffer.isValid, !stopping else { return }
+    guard sampleBuffer.isValid, !stopping else { return }
+
+    // Audio rides along once the session is anchored to the first video frame.
+    if type == .audio {
+      guard sessionStarted, let audioInput, audioInput.isReadyForMoreMediaData else { return }
+      audioInput.append(sampleBuffer)
+      return
+    }
+
+    guard type == .screen else { return }
     guard
       let attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false)
       as? [[SCStreamFrameInfo: Any]],

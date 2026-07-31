@@ -38,11 +38,11 @@ enum SimrecError: LocalizedError {
     switch self {
     case .badArguments:
       return "Usage: simrec [--force] [--prores] [--fps N] OUTPUT.mov"
-    case let .outputExists(path):
+    case .outputExists(let path):
       return "Output already exists: \(path). Pass --force to replace it."
     case .noBootedDisplay:
       return "Could not read the booted Simulator's display geometry. Is a simulator booted?"
-    case let .shareableContentFailed(message):
+    case .shareableContentFailed(let message):
       return """
       Could not enumerate windows: \(message)
       If this is a permissions error, grant Screen Recording to your terminal in
@@ -50,16 +50,16 @@ enum SimrecError: LocalizedError {
       """
     case .noSimulatorWindow:
       return "Could not find an on-screen Simulator window."
-    case let .windowDoesNotLookLikeBareScreen(bounds):
+    case .windowDoesNotLookLikeBareScreen(let bounds):
       return """
       The Simulator window (\(Int(bounds.width))x\(Int(bounds.height))) does not look like a
       bezel-free device screen. Turn off Simulator → Window → Show Device Bezels and try again.
       """
     case .noDisplayForWindow:
       return "Could not match the Simulator window to a display."
-    case let .writerFailed(message):
+    case .writerFailed(let message):
       return "Could not write the movie: \(message)"
-    case let .captureFailed(message):
+    case .captureFailed(let message):
       return "Capture failed: \(message)"
     }
   }
@@ -120,9 +120,9 @@ func fetchShareableContent() throws -> SCShareableContent {
   semaphore.wait()
 
   switch result! {
-  case let .success(content):
+  case .success(let content):
     return content
-  case let .failure(error):
+  case .failure(let error):
     throw SimrecError.shareableContentFailed(error.localizedDescription)
   }
 }
@@ -152,8 +152,10 @@ final class Recorder: NSObject, SCStreamDelegate, SCStreamOutput {
   private let fps: Int
 
   private var stream: SCStream?
+  private var audioStream: SCStream?
   private var writer: AVAssetWriter?
   private var writerInput: AVAssetWriterInput?
+  private var audioInput: AVAssetWriterInput?
   private var sessionStarted = false
   private var frameCount = 0
   private var droppedCount = 0
@@ -236,6 +238,7 @@ final class Recorder: NSObject, SCStreamDelegate, SCStreamOutput {
       height: screenRect.height
     )
     config.minimumFrameInterval = CMTime(value: 1, timescale: CMTimeScale(fps))
+
     config.pixelFormat = kCVPixelFormatType_32BGRA
     config.colorSpaceName = CGColorSpace.sRGB
     config.showsCursor = false
@@ -247,7 +250,24 @@ final class Recorder: NSObject, SCStreamDelegate, SCStreamOutput {
 
     let stream = SCStream(filter: filter, configuration: config, delegate: self)
     try stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: writeQueue)
+
     self.stream = stream
+
+    // Simulator audio is not attributed to the Simulator's windows, so a
+    // window-filtered stream records silence. Capture audio on a second,
+    // display-wide stream (no video output attached) instead.
+    let audioConfig = SCStreamConfiguration()
+    audioConfig.capturesAudio = true
+    audioConfig.excludesCurrentProcessAudio = true
+    audioConfig.sampleRate = 48000
+    audioConfig.channelCount = 2
+    audioConfig.width = 2
+    audioConfig.height = 2
+    audioConfig.minimumFrameInterval = CMTime(value: 1, timescale: 1)
+    let audioFilter = SCContentFilter(display: display, excludingWindows: [])
+    let audioStream = SCStream(filter: audioFilter, configuration: audioConfig, delegate: self)
+    try audioStream.addStreamOutput(self, type: .audio, sampleHandlerQueue: writeQueue)
+    self.audioStream = audioStream
 
     var startResult: Result<Void, Error>?
     let semaphore = DispatchSemaphore(value: 0)
@@ -256,9 +276,18 @@ final class Recorder: NSObject, SCStreamDelegate, SCStreamOutput {
       semaphore.signal()
     }
     semaphore.wait()
-    if case let .failure(error) = startResult! {
+    if case .failure(let error) = startResult! {
       throw SimrecError.captureFailed(error.localizedDescription)
     }
+
+    let audioSemaphore = DispatchSemaphore(value: 0)
+    audioStream.startCapture { error in
+      if let error {
+        FileHandle.standardError.write(Data("warning: audio capture unavailable: \(error.localizedDescription)\n".utf8))
+      }
+      audioSemaphore.signal()
+    }
+    audioSemaphore.wait()
 
     installSignalHandlers()
     startWindowFollower()
@@ -278,9 +307,10 @@ final class Recorder: NSObject, SCStreamDelegate, SCStreamOutput {
   }
 
   private func refreshSourceRect() {
-    guard !stopping,
-          let info = CGWindowListCopyWindowInfo([.optionIncludingWindow], simWindowID) as? [[String: Any]],
-          let bounds = info.first?[kCGWindowBounds as String] as? [String: CGFloat]
+    guard
+      !stopping,
+      let info = CGWindowListCopyWindowInfo([.optionIncludingWindow], simWindowID) as? [[String: Any]],
+      let bounds = info.first?[kCGWindowBounds as String] as? [String: CGFloat]
     else { return }
 
     let frame = CGRect(
@@ -336,6 +366,20 @@ final class Recorder: NSObject, SCStreamDelegate, SCStreamOutput {
       throw SimrecError.writerFailed("writer rejected video input settings")
     }
     writer.add(input)
+
+    let audioSettings: [String: Any] = [
+      AVFormatIDKey: kAudioFormatMPEG4AAC,
+      AVSampleRateKey: 48000,
+      AVNumberOfChannelsKey: 2,
+      AVEncoderBitRateKey: 192_000,
+    ]
+    let audio = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
+    audio.expectsMediaDataInRealTime = true
+    guard writer.canAdd(audio) else {
+      throw SimrecError.writerFailed("writer rejected audio input settings")
+    }
+    writer.add(audio)
+    audioInput = audio
     guard writer.startWriting() else {
       throw SimrecError.writerFailed(writer.error?.localizedDescription ?? "startWriting failed")
     }
@@ -346,11 +390,20 @@ final class Recorder: NSObject, SCStreamDelegate, SCStreamOutput {
 
   // MARK: SCStreamOutput
 
-  func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
-    guard type == .screen, sampleBuffer.isValid else { return }
+  func stream(_: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
+    guard sampleBuffer.isValid else { return }
+
+    // Audio rides along once the session is anchored to the first video frame.
+    if type == .audio {
+      guard sessionStarted, !stopping, let audioInput, audioInput.isReadyForMoreMediaData else { return }
+      audioInput.append(sampleBuffer)
+      return
+    }
+
+    guard type == .screen else { return }
     guard
       let attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false)
-        as? [[SCStreamFrameInfo: Any]],
+      as? [[SCStreamFrameInfo: Any]],
       let statusRaw = attachments.first?[.status] as? Int,
       let status = SCFrameStatus(rawValue: statusRaw),
       status == .complete
@@ -375,7 +428,7 @@ final class Recorder: NSObject, SCStreamDelegate, SCStreamOutput {
 
   // MARK: SCStreamDelegate
 
-  func stream(_ stream: SCStream, didStopWithError error: Error) {
+  func stream(_: SCStream, didStopWithError error: Error) {
     writeQueue.async { [weak self] in
       FileHandle.standardError.write(Data("stream stopped: \(error.localizedDescription)\n".utf8))
       self?.finish(exitCode: 1)
@@ -405,6 +458,9 @@ final class Recorder: NSObject, SCStreamDelegate, SCStreamOutput {
     let semaphore = DispatchSemaphore(value: 0)
     stream?.stopCapture { _ in semaphore.signal() }
     semaphore.wait()
+    let audioSemaphore = DispatchSemaphore(value: 0)
+    audioStream?.stopCapture { _ in audioSemaphore.signal() }
+    audioSemaphore.wait()
     finish(exitCode: 0)
   }
 
@@ -415,6 +471,7 @@ final class Recorder: NSObject, SCStreamDelegate, SCStreamOutput {
     }
 
     writerInput.markAsFinished()
+    audioInput?.markAsFinished()
     let semaphore = DispatchSemaphore(value: 0)
     writer.finishWriting { semaphore.signal() }
     semaphore.wait()

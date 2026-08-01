@@ -12,6 +12,7 @@
 		A1000007 /* CursorHider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000011 /* CursorHider.swift */; };
 		A1000009 /* SimulatorRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000013 /* SimulatorRecorder.swift */; };
 		A100000B /* SimulatorCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000015 /* SimulatorCapture.swift */; };
+		A100000D /* SimulatorRecorderStreams.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000017 /* SimulatorRecorderStreams.swift */; };
 		B1000001 /* CursorHiderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001 /* CursorHiderTests.swift */; };
 		B1000002 /* OverlayWindowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000002 /* OverlayWindowTests.swift */; };
 		B1000003 /* SimulatorCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000003 /* SimulatorCaptureTests.swift */; };
@@ -34,6 +35,7 @@
 		A2000009 /* OverlayWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayWindow.swift; sourceTree = "<group>"; };
 		A2000013 /* SimulatorRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorRecorder.swift; sourceTree = "<group>"; };
 		A2000015 /* SimulatorCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorCapture.swift; sourceTree = "<group>"; };
+		A2000017 /* SimulatorRecorderStreams.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorRecorderStreams.swift; sourceTree = "<group>"; };
 		A2000011 /* CursorHider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorHider.swift; sourceTree = "<group>"; };
 		A2000010 /* TouchPoint.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TouchPoint.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B2000001 /* CursorHiderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorHiderTests.swift; sourceTree = "<group>"; };
@@ -69,6 +71,7 @@
 				A2000009 /* OverlayWindow.swift */,
 				A2000013 /* SimulatorRecorder.swift */,
 				A2000015 /* SimulatorCapture.swift */,
+				A2000017 /* SimulatorRecorderStreams.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -192,6 +195,7 @@
 				A1000005 /* OverlayWindow.swift in Sources */,
 				A1000009 /* SimulatorRecorder.swift in Sources */,
 				A100000B /* SimulatorCapture.swift in Sources */,
+				A100000D /* SimulatorRecorderStreams.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -169,6 +169,9 @@ final class Recorder: NSObject, SCStreamDelegate, SCStreamOutput {
   private var simWindowID: CGWindowID = 0
   private var lastWindowFrame: CGRect = .zero
   private var followTimer: DispatchSourceTimer?
+  private var heartbeatTimer: DispatchSourceTimer?
+  private var lastVideoSample: CMSampleBuffer?
+  private var lastVideoTime = CMTime.invalid
 
   init(outputURL: URL, useProRes: Bool, fps: Int) {
     self.outputURL = outputURL
@@ -295,9 +298,50 @@ final class Recorder: NSObject, SCStreamDelegate, SCStreamOutput {
 
     installSignalHandlers()
     startWindowFollower()
+    startHeartbeat()
     print("Recording \(native.width)x\(native.height) at up to \(fps) fps (\(useProRes ? "ProRes 4444" : "HEVC")).")
     print("Interact with the Simulator normally. Press Ctrl-C here to stop.")
     RunLoop.main.run()
+  }
+
+  /// Static screens starve the VFR video track (frames arrive only on
+  /// change); heartbeat re-appends the last frame each second of stillness
+  /// and once at stop so the track spans the whole take.
+  private func startHeartbeat() {
+    let timer = DispatchSource.makeTimerSource(queue: writeQueue)
+    timer.schedule(deadline: .now() + 1, repeating: .seconds(1))
+    timer.setEventHandler { [weak self] in self?.appendHeartbeatFrame(force: false) }
+    timer.resume()
+    heartbeatTimer = timer
+  }
+
+  private func appendHeartbeatFrame(force: Bool) {
+    guard
+      sessionStarted,
+      let sample = lastVideoSample,
+      let writerInput, writerInput.isReadyForMoreMediaData
+    else { return }
+    let now = CMClockGetTime(CMClockGetHostTimeClock())
+    let gap = CMTimeGetSeconds(CMTimeSubtract(now, lastVideoTime))
+    guard force || gap > 1.05 else { return }
+    var timing = CMSampleTimingInfo(
+      duration: .invalid,
+      presentationTimeStamp: now,
+      decodeTimeStamp: .invalid
+    )
+    var copy: CMSampleBuffer?
+    CMSampleBufferCreateCopyWithNewTiming(
+      allocator: kCFAllocatorDefault,
+      sampleBuffer: sample,
+      sampleTimingEntryCount: 1,
+      sampleTimingArray: &timing,
+      sampleBufferOut: &copy
+    )
+    if let copy {
+      writerInput.append(copy)
+      lastVideoTime = now
+      frameCount += 1
+    }
   }
 
   /// The crop rect is fixed at capture start, so re-derive it whenever the
@@ -426,6 +470,8 @@ final class Recorder: NSObject, SCStreamDelegate, SCStreamOutput {
 
     if writerInput.isReadyForMoreMediaData {
       writerInput.append(sampleBuffer)
+      lastVideoSample = sampleBuffer
+      lastVideoTime = sampleBuffer.presentationTimeStamp
       frameCount += 1
     } else {
       droppedCount += 1
@@ -456,6 +502,9 @@ final class Recorder: NSObject, SCStreamDelegate, SCStreamOutput {
 
   private func stopAndFinish() {
     guard !stopping else { return }
+    heartbeatTimer?.cancel()
+    heartbeatTimer = nil
+    appendHeartbeatFrame(force: true)
     stopping = true
     followTimer?.cancel()
     followTimer = nil

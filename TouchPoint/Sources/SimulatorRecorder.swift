@@ -106,7 +106,7 @@ final class SimulatorRecorder: NSObject {
     try attachAudioStream(display: display)
 
     try startVideoCapture(stream)
-    startAudioCapture()
+    try startAudioCapture()
 
     isRecording = true
     stopping = false
@@ -221,15 +221,22 @@ extension SimulatorRecorder {
     }
   }
 
-  private func startAudioCapture() {
+  private func startAudioCapture() throws {
+    var startError: Error?
     let semaphore = DispatchSemaphore(value: 0)
     audioStream?.startCapture { error in
-      if let error {
-        NSLog("SimulatorRecorder audio capture unavailable: \(error.localizedDescription)")
-      }
+      startError = error
       semaphore.signal()
     }
     semaphore.wait()
+    // A silently-failed audio stream produces a take with a dead audio
+    // track that nobody notices until review. Fail loudly instead.
+    if let startError {
+      throw RecorderError.setupFailed(
+        "Audio capture failed to start: \(startError.localizedDescription) "
+          + "Recording aborted so you don't get a silent take."
+      )
+    }
   }
 
   /// The crop rect is fixed at capture start, so re-derive it whenever the
@@ -292,6 +299,12 @@ extension SimulatorRecorder {
       AVVideoCompressionPropertiesKey: [
         AVVideoAverageBitRateKey: 40_000_000,
         AVVideoExpectedSourceFrameRateKey: 60,
+        // Keyframe every second and no frame reordering: raw takes are VFR,
+        // and sparse keyframes make QuickTime scrubbing snap video seconds
+        // behind the (exact) audio — which reads as broken A/V sync when
+        // reviewing a take even though the file is correct.
+        AVVideoMaxKeyFrameIntervalKey: 60,
+        AVVideoAllowFrameReorderingKey: false,
       ],
     ]
 

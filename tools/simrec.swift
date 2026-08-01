@@ -280,14 +280,18 @@ final class Recorder: NSObject, SCStreamDelegate, SCStreamOutput {
       throw SimrecError.captureFailed(error.localizedDescription)
     }
 
+    var audioError: Error?
     let audioSemaphore = DispatchSemaphore(value: 0)
     audioStream.startCapture { error in
-      if let error {
-        FileHandle.standardError.write(Data("warning: audio capture unavailable: \(error.localizedDescription)\n".utf8))
-      }
+      audioError = error
       audioSemaphore.signal()
     }
     audioSemaphore.wait()
+    if let audioError {
+      throw SimrecError.captureFailed(
+        "Audio capture failed to start: \(audioError.localizedDescription) (aborting — no silent takes)"
+      )
+    }
 
     installSignalHandlers()
     startWindowFollower()
@@ -357,6 +361,8 @@ final class Recorder: NSObject, SCStreamDelegate, SCStreamOutput {
       settings[AVVideoCompressionPropertiesKey] = [
         AVVideoAverageBitRateKey: 40_000_000,
         AVVideoExpectedSourceFrameRateKey: fps,
+        AVVideoMaxKeyFrameIntervalKey: fps,
+        AVVideoAllowFrameReorderingKey: false,
       ]
     }
 

@@ -76,6 +76,16 @@ Release builds use manual signing with Developer ID. The following GitHub secret
 
 Local credentials are stored in `~/private-keys/`.
 
+## Code Review Rules
+
+- Flag cursor-management paths that replace the system cursor through private CGS APIs or
+  can exit/crash without restoring visibility after this app hid it.
+- Flag recording changes that capture a broader display/window region than the selected
+  Simulator and overlay, or that persist/share recordings without explicit user action.
+- Flag stale ScreenCaptureKit window identifiers after overlay recreation, coordinate
+  transforms that ignore screen origin/scale, or permission failures that leave global
+  input/cursor state modified.
+
 ## Important Notes
 
 - Never use CGS private APIs to *replace* the system cursor image — only hide/show. The reset APIs don't reliably restore the cursor on macOS 26.

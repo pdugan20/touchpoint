@@ -1,7 +1,8 @@
-# TouchPoint
+# touchpoint
 
-[![Release](https://img.shields.io/github/v/release/pdugan20/touchpoint?logo=github&logoColor=white)](https://github.com/pdugan20/touchpoint/releases/latest)
-[![CI](https://github.com/pdugan20/touchpoint/actions/workflows/ci.yml/badge.svg)](https://github.com/pdugan20/touchpoint/actions/workflows/ci.yml)
+[![CI](https://github.com/pdugan20/touchpoint/actions/workflows/ci.yml/badge.svg?branch=master&event=push)](https://github.com/pdugan20/touchpoint/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/pdugan20/touchpoint)](https://github.com/pdugan20/touchpoint/releases/latest)
+[![License](https://img.shields.io/github/license/pdugan20/touchpoint)](LICENSE)
 
 TouchPoint is a macOS menu bar app that replaces the system pointer with a
 translucent touch-style circle. It is built for recording iOS Simulator

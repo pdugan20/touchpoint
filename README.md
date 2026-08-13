@@ -1,47 +1,73 @@
-# touchpoint
+# TouchPoint
 
-[![CI](https://github.com/pdugan20/touchpoint/actions/workflows/ci.yml/badge.svg)](https://github.com/pdugan20/touchpoint/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/pdugan20/touchpoint?logo=github&logoColor=white)](https://github.com/pdugan20/touchpoint/releases/latest)
-[![Swift](https://img.shields.io/badge/Swift-6.0-F05138?logo=swift&logoColor=white)](https://swift.org)
-[![macOS](https://img.shields.io/badge/macOS-26+-000000?logo=apple&logoColor=white)](https://developer.apple.com/macos/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?logo=opensourceinitiative&logoColor=white)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/pdugan20/touchpoint/actions/workflows/ci.yml/badge.svg)](https://github.com/pdugan20/touchpoint/actions/workflows/ci.yml)
 
-A macOS menu bar app that replaces the system cursor with a touch-style circle overlay — like the touch cursor in Figma's prototype mode, but system-wide. Built for recording iOS Simulator interactions, device prototyping demos, and presentations.
+TouchPoint is a macOS menu bar app that replaces the system pointer with a
+translucent touch-style circle. It is built for recording iOS Simulator
+interactions, prototype demos, and presentations.
 
 ## Install
 
-Download the latest DMG from [Releases](https://github.com/pdugan20/touchpoint/releases/latest), open it, and drag TouchPoint to Applications. The app is signed and notarized.
+TouchPoint requires macOS 26 or newer.
+
+Download the latest DMG from
+[GitHub Releases](https://github.com/pdugan20/touchpoint/releases/latest),
+open it, and drag TouchPoint to Applications. Release builds are signed and
+notarized.
+
+TouchPoint runs in the menu bar and does not appear in the Dock. It requires
+Accessibility permission for global click detection.
 
 ## Usage
 
-- **Cmd+Shift+T** — Toggle the overlay on/off
-- **Cmd+Shift+R** — Record the booted iOS Simulator (press again to stop)
-- **Cmd+Shift+=/-** — Increase/decrease circle size
-- **Cmd+Shift+0** — Reset to default size
+| Action | Shortcut |
+| --- | --- |
+| Toggle TouchPoint | `Cmd+Shift+T` |
+| Start or stop Simulator recording | `Cmd+Shift+R` |
+| Increase or decrease circle size | `Cmd+Shift+=` / `Cmd+Shift+-` |
+| Reset circle size | `Cmd+Shift+0` |
+
+Size controls are also available from the TouchPoint menu and persist between
+launches.
 
 ## Simulator recording
 
-Cmd+Shift+R records the booted iOS Simulator at **native device resolution**
-(e.g. 1206×2622 on iPhone 17 Pro) at up to 60fps, with the live TouchPoint
-cursor — press animations included — captured exactly as you see it, plus an
-**AAC audio track of everything playing on the Mac** (Simulator sound
-included — no loopback driver needed). The finished HEVC `.mov` lands on
-your Desktop and is revealed in Finder.
+Press `Cmd+Shift+R` to record the booted iOS Simulator at native device
+resolution, up to 60 fps, with the TouchPoint overlay and click animations.
+The finished HEVC `.mov` is saved to the Desktop and revealed in Finder.
 
-Requirements:
+Before recording:
 
-- A booted simulator with **device bezels off** (Simulator → Window → Show
-  Device Bezels unchecked). The recorder errors with instructions otherwise.
-- **Screen Recording permission** for TouchPoint (macOS prompts on first use).
-- For a pixel-perfect 1:1 capture, put the Simulator window in **Pixel
-  Accurate** mode (Cmd+3). The recording is upscaled from the on-screen size
-  otherwise. On smaller displays, hide the Dock if Pixel Accurate is greyed
-  out.
+- Turn off Simulator → Window → Show Device Bezels.
+- Grant TouchPoint Screen Recording permission.
+- Use Simulator → Window → Pixel Accurate (`Cmd+3`) for a pixel-perfect capture.
 
-Starting a recording turns the overlay on automatically, and the crop follows
-the Simulator window if you move or resize it mid-take. A standalone CLI
-variant lives at `tools/simrec.swift`:
+The recording follows the Simulator window if it moves or resizes. Its audio
+track includes everything playing on the Mac during the recording.
+
+## Development
+
+Requirements are Xcode 26 or newer and Homebrew.
 
 ```bash
-swiftc -O tools/simrec.swift -o simrec && ./simrec --force ~/Desktop/demo.mov
+brew bundle
+pre-commit install
 ```
+
+Build and test:
+
+```bash
+xcodebuild -project TouchPoint.xcodeproj -scheme TouchPoint -configuration Debug build
+xcodebuild test -project TouchPoint.xcodeproj -scheme TouchPoint -destination 'platform=macOS'
+```
+
+Run the repository checks:
+
+```bash
+pre-commit run --all-files
+```
+
+## License
+
+[MIT](LICENSE)

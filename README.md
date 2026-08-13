@@ -41,10 +41,7 @@ Before recording:
 
 - Turn off Simulator → Window → Show Device Bezels.
 - Grant TouchPoint Screen Recording permission.
-- Use Simulator → Window → Pixel Accurate (`Cmd+3`) for a pixel-perfect capture.
-
-The recording follows the Simulator window if it moves or resizes. Its audio
-track includes everything playing on the Mac during the recording.
+- Use Simulator → Window → Pixel Accurate.
 
 ## Development
 
@@ -67,7 +64,3 @@ Run the repository checks:
 ```bash
 pre-commit run --all-files
 ```
-
-## License
-
-[MIT](LICENSE)

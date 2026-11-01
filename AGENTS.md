@@ -29,6 +29,12 @@ pre-commit install   # Install git hooks
 xcodebuild test -project TouchPoint.xcodeproj -scheme TouchPoint -destination 'platform=macOS'
 ```
 
+## Commands
+
+- `scripts/verify.sh` runs the CI checks locally: actionlint, offline zizmor, pinned SwiftLint, then the unsigned Debug build and macOS tests. Requires Xcode, actionlint, and zizmor; downloads SwiftLint 0.65.1 with a SHA-256 check.
+- `scripts/install-ci-tools.sh` installs CI's pinned SwiftLint into `.build/ci-tools/bin`.
+- Automated builds and tests share `~/DerivedData/touchpoint-slot-0`; run them serially.
+
 ## Architecture
 
 - `AppDelegate.swift` — App lifecycle, menu bar, global hotkeys (Cmd+Shift+T toggle, Cmd+Shift+R record), size controls, cursor hiding

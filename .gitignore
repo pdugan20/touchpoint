@@ -30,6 +30,3 @@ Package.resolved
 *.ipa
 *.dSYM.zip
 *.dSYM
-
-# claudelint
-.claudelint-cache/

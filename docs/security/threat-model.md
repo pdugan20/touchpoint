@@ -34,7 +34,7 @@ Media, frames, and paths can expose session content. Capture changes, file repla
 
 ## Review priorities
 
-Review capture scope/lifecycle first, destination and numeric validation second, release execution third. Extend geometry tests with boundary/failure cases (`TouchPointTests/SimulatorCaptureTests.swift`).
+Review capture scope/lifecycle first, destination and numeric validation second, release execution third. Re-resolve the ScreenCaptureKit content filter after overlay recreation; never reuse a stale window ID (`TouchPoint/Sources/SimulatorRecorder.swift`, `TouchPoint/Sources/AppDelegate.swift`). Extend geometry tests with boundary/failure cases (`TouchPointTests/SimulatorCaptureTests.swift`).
 
 ## Uncertain assumptions
 
